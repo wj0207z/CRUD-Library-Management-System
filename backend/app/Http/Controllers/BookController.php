@@ -42,7 +42,7 @@ class BookController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'isbn' => 'required|string|max:255|unique:books,isbn,' . $book->id,
+            'isbn' => 'required|string|max:255|unique:books,isbn,' . $book->id, //every book is unique
             'category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'total_copies' => 'required|integer|min:1',
@@ -51,6 +51,15 @@ class BookController extends Controller
 
         $book->update($validated);
         
-        return response()->json($book])
+        return response()->json($book);
+    }
+
+    public function destroy(Book $book)
+    {
+        $book->delete();
+
+        return response()->json([
+            'message' => 'Book deleted successfully',
+        ]);
     }
 }
