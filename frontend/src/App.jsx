@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from "react-router-dom";
 import BookDetail from "./pages/BookDetail";
 import Books from "./pages/Books";
+import EditBook from "./pages/EditBook";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -13,9 +14,15 @@ function Home() {
         <strong>Library System</strong>
 
         <nav>
-          <Link to="/">Home</Link>
-          <Link to="/login">Login</Link>
-          <Link to="/register">Register</Link>
+          <Link to="/home">Home</Link>
+          <Link to="/books">Books</Link>
+
+          {!user && (
+            <>
+              <Link to="/login">Login</Link>
+              <Link to="/register">Register</Link>
+            </>
+          )}
         </nav>
       </div>
 
@@ -41,13 +48,15 @@ function App() {
     <div className="app-container">
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/books" element={<Books />} />
         <Route path="/books/:id" element={<BookDetail />} />
+        <Route path="/books/:id/edit" element={<EditBook />} />
       </Routes>
     </div>
-  );z
+  );
 }
 
 export default App;

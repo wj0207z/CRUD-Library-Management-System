@@ -3,28 +3,34 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
 function Books() {
+    const navigate = useNavigate();
+
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const navigate = useNavigate();
+
     const user = JSON.parse(localStorage.getItem("user"));
 
-    async function fetchBooks() {
+    useEffect(() => {
+        async function fetchBooks() {
         try {
-        const response = await api.get("/books");
-        setBooks(response.data);
+            const response = await api.get("/books");
+            setBooks(response.data);
         } catch (error) {
-        setError("Failed to load books.");
+            setError("Failed to load books.");
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
-    }
+        }
+
+        fetchBooks();
+    }, []);
 
     async function handleLogout() {
         try {
         await api.post("/logout");
         } catch (error) {
-        console.log("Logout request failed, clearing local data anyway.");
+        console.log("Logout failed, but local data will still be cleared.");
         }
 
         localStorage.removeItem("token");
@@ -33,20 +39,20 @@ function Books() {
         navigate("/login");
     }
 
-    useEffect(() => {
-        fetchBooks();
-    }, []);
+    async function handleDeleteBook(bookId) {
+        const confirmed = window.confirm("Are you sure you want to delete this book?");
 
-    if (loading) {
-        return (
-        <>
-            <Navbar user={user} onLogout={handleLogout} />
+        if (!confirmed) {
+        return;
+        }
 
-            <main className="page">
-            <p>Loading books...</p>
-            </main>
-        </>
-        );
+        try {
+        await api.delete(`/books/${bookId}`);
+
+        setBooks(books.filter((book) => book.id !== bookId));
+        } catch (error) {
+        setError("Failed to delete book.");
+        }
     }
 
     return (
@@ -54,41 +60,87 @@ function Books() {
         <Navbar user={user} onLogout={handleLogout} />
 
         <main className="page">
+            <div className="page-header">
             <h1>Books</h1>
+
+            {user ? (
+                <p>
+                Logged in as {user.name} ({user.role})
+                </p>
+            ) : (
+                <p>You are browsing as guest.</p>
+            )}
+            </div>
+
+            {loading && <p>Loading books...</p>}
 
             {error && <p className="error">{error}</p>}
 
-            {books.length === 0 ? (
+            {!loading && !error && books.length === 0 && (
             <div className="status-box">
                 <p>No books found.</p>
             </div>
-            ) : (
+            )}
+
+            {!loading && !error && books.length > 0 && (
             <div className="book-grid">
                 {books.map((book) => (
                 <div className="book-card" key={book.id}>
-                    <Link className="book-card" to={`/books/${book.id}`} key={book.id}>
-                        <div className="book-card-header">
-                            <span>{book.category || "Uncategorized"}</span>
-                            <strong>
-                            {book.available_copies > 0 ? "Available" : "Unavailable"}
-                            </strong>
+                    <div className="book-cover">
+                    {book.cover_image ? (
+                        <img src={book.cover_image} alt={book.title} />
+                    ) : (
+                        <span>No Cover</span>
+                    )}
+                    </div>
+
+                    <div className="book-card-content">
+                    <div className="book-card-header">
+                        <span>{book.category || "Uncategorized"}</span>
+                        <strong>
+                        {book.available_copies > 0
+                            ? "Available"
+                            : "Unavailable"}
+                        </strong>
+                    </div>
+
+                    <h2>{book.title}</h2>
+
+                    <p className="book-author">by {book.author}</p>
+
+                    <p className="book-description-preview">
+                        {book.description || "No description available."}
+                    </p>
+
+                    <div className="book-card-footer">
+                        <span>ISBN: {book.isbn}</span>
+                        <span>
+                        {book.available_copies} / {book.total_copies}
+                        </span>
+                    </div>
+
+                    <div className="book-actions">
+                        <Link className="details-button" to={`/books/${book.id}`}>
+                            View Details
+                        </Link>
+
+                        {user?.role === "admin" && (
+                            <>
+                            <Link className="edit-button" to={`/books/${book.id}/edit`}>
+                                Edit
+                            </Link>
+
+                            <button
+                                className="delete-button"
+                                type="button"
+                                onClick={() => handleDeleteBook(book.id)}
+                            >
+                                Delete
+                            </button>
+                            </>
+                        )}
                         </div>
-
-                        <h2>{book.title}</h2>
-
-                        <p className="book-author">by {book.author}</p>
-
-                        <p className="book-description-preview">
-                            {book.description || "No description available."}
-                        </p>
-
-                        <div className="book-card-footer">
-                            <span>ISBN: {book.isbn}</span>
-                            <span>
-                            {book.available_copies} / {book.total_copies}
-                            </span>
-                        </div>
-                    </Link>
+                    </div>
                 </div>
                 ))}
             </div>
@@ -104,15 +156,13 @@ function Books() {
         <strong>Library System</strong>
 
         <nav>
+            <Link to="/home">Home</Link>
+            <Link to="/books">Books</Link>
+
             {user ? (
-            <>
-                <span className="nav-user">
-                {user.name} ({user.role})
-                </span>
-                <button className="logout-button" onClick={onLogout}>
+            <button className="logout-button" onClick={onLogout}>
                 Logout
-                </button>
-            </>
+            </button>
             ) : (
             <>
                 <Link to="/login">Login</Link>
