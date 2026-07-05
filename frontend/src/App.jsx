@@ -1,4 +1,5 @@
 import { Link, Route, Routes } from "react-router-dom";
+import AddBook from "./pages/AddBook";
 import BookDetail from "./pages/BookDetail";
 import Books from "./pages/Books";
 import EditBook from "./pages/EditBook";
@@ -54,6 +55,7 @@ function App() {
         <Route path="/books" element={<Books />} />
         <Route path="/books/:id" element={<BookDetail />} />
         <Route path="/books/:id/edit" element={<EditBook />} />
+        <Route path="/books/add" element={<AddBook />} />
       </Routes>
     </div>
   );

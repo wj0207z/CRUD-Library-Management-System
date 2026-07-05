@@ -104,47 +104,63 @@ function Books() {
 
         <main className="page">
             <div className="page-header">
-            <div>
-                <h1>Books</h1>
+                <div>
+                    <h1>Books</h1>
 
-                {user ? (
-                <p>
-                    Logged in as {user.name} ({user.role})
-                </p>
-                ) : (
-                <p>You are browsing as guest.</p>
-                )}
-            </div>
+                    {user ? (
+                    <p>
+                        Logged in as {user.name} ({user.role})
+                    </p>
+                    ) : (
+                    <p>You are browsing as guest.</p>
+                    )}
+                </div>
 
             {isAdmin && (
                 <div className="admin-toolbar">
-                <button
-                    className={adminMode === "edit" ? "active" : ""}
-                    type="button"
-                    onClick={() => handleAdminMode("edit")}
-                >
-                    Edit
-                </button>
-
-                <button
-                    className={
-                    adminMode === "delete" ? "active danger" : "danger"
-                    }
-                    type="button"
-                    onClick={() => handleAdminMode("delete")}
-                >
-                    Delete
-                </button>
-
-                {adminMode && (
-                    <button
-                    className="muted"
-                    type="button"
-                    onClick={() => handleAdminMode("")}
-                    >
-                    Cancel
+                    <button className="admin-icon-button add-button"
+                        type="button"
+                        onClick={() => navigate("/books/add")}>
+                        
+                        <span className="button-icon">+</span>
+                        <span className="button-label">Add Book</span>
                     </button>
-                )}
+
+                    <button
+                        className={adminMode === "edit"
+                        ? "admin-icon-button edit-mode-button active"
+                        : "admin-icon-button edit-mode-button"
+                    }
+                        type="button"
+                        onClick={() => handleAdminMode("edit")}
+                    >
+                        <span className="button-icon">✎</span>
+                        <span className="button-label">Edit</span>
+                    </button>
+
+                    <button
+                        className={
+                        adminMode === "delete"
+                        ? "admin-icon-button delete-mode-button active"
+                        : "admin-icon-button delete-mode-button"
+                        }
+                        type="button"
+                        onClick={() => handleAdminMode("delete")}
+                    >
+                        <span className="button-icon">×</span>
+                        <span className="button-label">Delete</span>
+                    </button>
+
+                    {adminMode && (
+                        <button
+                        className="admin-icon-button cancel-mode-button"
+                        type="button"
+                        onClick={() => handleAdminMode("")}
+                        >
+                        <span className="button-icon">↩</span>
+                        <span className="button-label">Cancel</span>
+                    </button>
+                    )}
                 </div>
             )}
             </div>

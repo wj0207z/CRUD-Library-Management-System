@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Borrowing;
 
 class Book extends Model
 {
@@ -16,4 +17,11 @@ class Book extends Model
         'total_copies',
         'available_copies',
     ];
+
+    public function borrowings()
+    {
+
+    return $this->hasMany(Borrowing::class);
+
+    }
 }
