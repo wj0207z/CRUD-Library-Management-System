@@ -4,13 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Book;
+use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
     //Means take book from database for futher display
     public function index()
     {
-        return response()->json(Book::all());
+        $books = Book::all()->map(function ($book) {
+            return $this->withCoverUrl($book);
+        });
+    
+        return response()->json($books);
     }
 
     public function store(Request $request)
@@ -34,11 +39,12 @@ class BookController extends Controller
 
     public function show (Book $book)
     {
-        return response()->json($book);
+        return response()->json($this->withCoverUrl($book));
     }
 
     public function update (Request $request, Book $book)
     {
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
@@ -47,11 +53,24 @@ class BookController extends Controller
             'description' => 'nullable|string',
             'total_copies' => 'required|integer|min:1',
             'available_copies' => 'required|integer|min:0',
+            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $book->update($validated);
+        if ($request->hasFile('cover_image')) {
+            if ($book->cover_image) {
+                Storage::disk('public')->delete($book->cover_image);
+            }
         
-        return response()->json($book);
+        $validated['cover_image'] = $request->file('cover_image')->store('book-covers', 'public');
+        }
+
+        $book->update($validated);
+
+        $book->cover_image_url = $book->cover_image
+            ? asset('storage/' . $book->cover_image)
+            : null;
+                
+        return response()->json($this->withCoverUrl($book));
     }
 
     public function destroy(Book $book)
@@ -61,5 +80,14 @@ class BookController extends Controller
         return response()->json([
             'message' => 'Book deleted successfully',
         ]);
+    }
+
+    private function withCoverUrl(Book $book)
+    {
+        $book->cover_image_url = $book->cover_image
+            ? asset('storage/' . $book->cover_image)
+            : null;
+
+        return $book;
     }
 }

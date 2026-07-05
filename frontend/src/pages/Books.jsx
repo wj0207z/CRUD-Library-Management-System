@@ -8,8 +8,11 @@ function Books() {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [adminMode, setAdminMode] = useState("");
+    const [selectedBookIds, setSelectedBookIds] = useState([]);
 
     const user = JSON.parse(localStorage.getItem("user"));
+    const isAdmin = user?.role === "admin";
 
     useEffect(() => {
         async function fetchBooks() {
@@ -39,19 +42,59 @@ function Books() {
         navigate("/login");
     }
 
-    async function handleDeleteBook(bookId) {
-        const confirmed = window.confirm("Are you sure you want to delete this book?");
+    function handleAdminMode(mode) {
+        setError("");
+        setSelectedBookIds([]);
+        setAdminMode(mode);
+    }
+
+    function handleBookClick(bookId) {
+        if (adminMode === "edit") {
+        navigate(`/books/${bookId}/edit`);
+        return;
+        }
+
+        if (adminMode === "delete") {
+        toggleBookSelection(bookId);
+        return;
+        }
+
+        navigate(`/books/${bookId}`);
+    }
+
+    function toggleBookSelection(bookId) {
+        if (selectedBookIds.includes(bookId)) {
+        setSelectedBookIds(selectedBookIds.filter((id) => id !== bookId));
+        return;
+        }
+
+        setSelectedBookIds([...selectedBookIds, bookId]);
+    }
+
+    async function handleDeleteSelectedBooks() {
+        if (selectedBookIds.length === 0) {
+        setError("Please select at least one book to delete.");
+        return;
+        }
+
+        const confirmed = window.confirm(
+        `Are you sure you want to delete ${selectedBookIds.length} book(s)?`
+        );
 
         if (!confirmed) {
         return;
         }
 
         try {
-        await api.delete(`/books/${bookId}`);
+        await Promise.all(
+            selectedBookIds.map((bookId) => api.delete(`/books/${bookId}`))
+        );
 
-        setBooks(books.filter((book) => book.id !== bookId));
+        setBooks(books.filter((book) => !selectedBookIds.includes(book.id)));
+        setSelectedBookIds([]);
+        setAdminMode("");
         } catch (error) {
-        setError("Failed to delete book.");
+        setError("Failed to delete selected books.");
         }
     }
 
@@ -61,16 +104,64 @@ function Books() {
 
         <main className="page">
             <div className="page-header">
-            <h1>Books</h1>
+            <div>
+                <h1>Books</h1>
 
-            {user ? (
+                {user ? (
                 <p>
-                Logged in as {user.name} ({user.role})
+                    Logged in as {user.name} ({user.role})
                 </p>
-            ) : (
+                ) : (
                 <p>You are browsing as guest.</p>
+                )}
+            </div>
+
+            {isAdmin && (
+                <div className="admin-toolbar">
+                <button
+                    className={adminMode === "edit" ? "active" : ""}
+                    type="button"
+                    onClick={() => handleAdminMode("edit")}
+                >
+                    Edit
+                </button>
+
+                <button
+                    className={
+                    adminMode === "delete" ? "active danger" : "danger"
+                    }
+                    type="button"
+                    onClick={() => handleAdminMode("delete")}
+                >
+                    Delete
+                </button>
+
+                {adminMode && (
+                    <button
+                    className="muted"
+                    type="button"
+                    onClick={() => handleAdminMode("")}
+                    >
+                    Cancel
+                    </button>
+                )}
+                </div>
             )}
             </div>
+
+            {adminMode === "edit" && (
+            <p className="admin-mode-message">Select one book to edit.</p>
+            )}
+
+            {adminMode === "delete" && (
+            <div className="admin-mode-message delete-mode-bar">
+                <span>Selected: {selectedBookIds.length}</span>
+
+                <button type="button" onClick={handleDeleteSelectedBooks}>
+                Delete Selected
+                </button>
+            </div>
+            )}
 
             {loading && <p>Loading books...</p>}
 
@@ -85,10 +176,26 @@ function Books() {
             {!loading && !error && books.length > 0 && (
             <div className="book-grid">
                 {books.map((book) => (
-                <div className="book-card" key={book.id}>
+                <div
+                    className={`book-card ${
+                    selectedBookIds.includes(book.id) ? "selected" : ""
+                    }`}
+                    key={book.id}
+                    onClick={() => handleBookClick(book.id)}
+                >
+                    {adminMode === "delete" && (
+                    <input
+                        className="book-select-checkbox"
+                        type="checkbox"
+                        checked={selectedBookIds.includes(book.id)}
+                        onChange={() => toggleBookSelection(book.id)}
+                        onClick={(event) => event.stopPropagation()}
+                    />
+                    )}
+
                     <div className="book-cover">
-                    {book.cover_image ? (
-                        <img src={book.cover_image} alt={book.title} />
+                    {book.cover_image_url ? (
+                        <img src={book.cover_image_url} alt={book.title} />
                     ) : (
                         <span>No Cover</span>
                     )}
@@ -98,9 +205,7 @@ function Books() {
                     <div className="book-card-header">
                         <span>{book.category || "Uncategorized"}</span>
                         <strong>
-                        {book.available_copies > 0
-                            ? "Available"
-                            : "Unavailable"}
+                        {book.available_copies > 0 ? "Available" : "Unavailable"}
                         </strong>
                     </div>
 
@@ -120,26 +225,10 @@ function Books() {
                     </div>
 
                     <div className="book-actions">
-                        <Link className="details-button" to={`/books/${book.id}`}>
-                            View Details
-                        </Link>
-
-                        {user?.role === "admin" && (
-                            <>
-                            <Link className="edit-button" to={`/books/${book.id}/edit`}>
-                                Edit
-                            </Link>
-
-                            <button
-                                className="delete-button"
-                                type="button"
-                                onClick={() => handleDeleteBook(book.id)}
-                            >
-                                Delete
-                            </button>
-                            </>
-                        )}
-                        </div>
+                        <span className="details-button">
+                        {adminMode === "edit" ? "Select to Edit" : "View Details"}
+                        </span>
+                    </div>
                     </div>
                 </div>
                 ))}

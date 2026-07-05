@@ -151,21 +151,23 @@ button:hover {
 
 .book-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 24px;
 }
 
 .book-card {
   background: white;
-  padding: 16px;
+  padding: 20px;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   color: inherit;
   text-decoration: none;
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 18px;
-  min-height: 220px;
+  grid-template-columns: 140px 1fr;
+  gap: 22px;
+  min-height: 260px;
+  max-height: 300px;
+  overflow: hidden;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -175,8 +177,8 @@ button:hover {
 }
 
 .book-cover {
-  width: 120px;
-  min-height: 180px;
+  width: 140px;
+  min-height: 220px;
   border-radius: 6px;
   background: #e5e7eb;
   color: #6b7280;
@@ -198,6 +200,8 @@ button:hover {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .book-card-header,
@@ -225,8 +229,11 @@ button:hover {
 .book-description-preview {
   color: #374151;
   line-height: 1.5;
-  flex: 1;
   margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .book-card-footer {
@@ -291,7 +298,18 @@ button:hover {
 .book-actions {
   display: flex;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: auto;
+  padding-top: 14px;
+}
+
+.book-select-checkbox {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  z-index: 2;
 }
 
 .details-button,
@@ -309,6 +327,7 @@ button:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   background: #ADD8E6;
   color: #1f2937;
   text-decoration: none;
@@ -373,6 +392,115 @@ button:hover {
   border-color: #2563eb;
 }
 
+.file-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.current-cover-preview {
+  margin-bottom: 20px;
+}
+
+.current-cover-preview p {
+  margin: 0 0 8px;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.current-cover-preview img {
+  width: 120px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.admin-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-toolbar button,
+.delete-mode-bar button {
+  width: auto;
+  padding: 7px 11px;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1.2;
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.admin-toolbar button:hover,
+.delete-mode-bar button:hover {
+  background: #d1d5db;
+}
+
+.admin-toolbar button.active {
+  background: #c7d2fe;
+  color: #3730a3;
+}
+
+.admin-toolbar button.danger {
+  background: #f3d6d6;
+  color: #7f1d1d;
+}
+
+.admin-toolbar button.danger:hover {
+  background: #e8bcbc;
+}
+
+.admin-toolbar button.muted {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.admin-mode-message {
+  margin: -8px 0 20px;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.delete-mode-bar {
+  background: white;
+  padding: 12px 14px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.book-card {
+  position: relative;
+  cursor: pointer;
+}
+
+.book-card.selected {
+  outline: 2px solid #4f46e5;
+}
+
+.book-select-checkbox {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
 @media (max-width: 640px) {
   .navbar {
     padding: 16px 20px;
@@ -393,10 +521,11 @@ button:hover {
 
   .book-card {
     grid-template-columns: 1fr;
+    max-height: none;
   }
 
   .book-cover {
     width: 100%;
-    min-height: 220px;
+    min-height: 240px;
   }
 }
