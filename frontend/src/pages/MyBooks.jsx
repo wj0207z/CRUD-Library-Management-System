@@ -7,6 +7,7 @@ function MyBooks() {
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [returnMode, setReturnMode] = useState(false);
 
     async function fetchMyBooks() {
         try {
@@ -49,10 +50,12 @@ function MyBooks() {
         );
 
         setSelectedBookIds([]);
+        setReturnMode(false);
         setMessage("Selected books returned successfully.");
         } catch (error) {
         setError(error.response?.data?.message || "Failed to return selected books.");
         }
+        
     }
 
     useEffect(() => {
@@ -67,21 +70,50 @@ function MyBooks() {
         );
     }
 
+    function cancelReturnMode() {
+        setReturnMode(false);
+        setSelectedBookIds([]);
+        setError("");
+    }
+
     return (
         <main className="page">
-        <div className="page-header">
-            <div>
+        <div className="my-books-header">
             <h1>My Books</h1>
-            <p>Books you are currently borrowing.</p>
-            </div>
 
-            <button
-            className="return-selected-button"
-            type="button"
-            onClick={handleReturnSelected}
-            >
-            Return Selected
-            </button>
+        <div className="my-books-subheader">
+            <p>Books you are currently borrowing.</p>
+
+            <div className="my-books-actions">
+                {returnMode ? (
+                    <>
+                        <button
+                            className="return-selected-button"
+                            type="button"
+                            onClick={handleReturnSelected}
+                    >
+                            Return Selected
+                        </button>
+
+                        <button
+                            className="cancel-return-button"
+                            type="button"
+                            onClick={cancelReturnMode}
+                        >
+                            Cancel
+                        </button>
+                    </>
+                ) : (
+                    <button
+                        className="return-selected-button"
+                        type="button"
+                        onClick={() => setReturnMode(true)}
+                        >
+                        Return
+                    </button>
+                )}
+                </div>
+            </div>
         </div>
 
         {message && <p className="success">{message}</p>}
@@ -94,19 +126,32 @@ function MyBooks() {
         ) : (
             <div className="borrowed-table">
             {borrowings.map((borrowing) => (
-                <div className="borrowed-row" key={borrowing.id}>
-                <input
-                    type="checkbox"
-                    checked={selectedBookIds.includes(borrowing.book_id)}
-                    onChange={() => toggleSelection(borrowing.book_id)}
-                />
+                <div className={`borrowed-row ${returnMode ? "return-mode" : ""}`}
+                    key={borrowing.id}
+                >
 
-                <div>
-                    <h3>{borrowing.book.title}</h3>
-                    <p>Borrowed at: {borrowing.borrowed_at}</p>
-                </div>
+                    <div className="borrowed-cover">
+                        {borrowing.book.cover_image_url ? (
+                        <img src={borrowing.book.cover_image_url} alt={borrowing.book.title} />
+                        ) : (
+                        <span>No Cover</span>
+                        )}
+                    </div>
 
-                <span>{borrowing.book.category || "Uncategorized"}</span>
+                    <div>
+                        <h3>{borrowing.book.title}</h3>
+                        <p>Borrowed at: {borrowing.borrowed_at}</p>
+                    </div>
+
+                    <span>{borrowing.book.category || "Uncategorized"}</span>
+
+                    {returnMode && (
+                        <input
+                            type="checkbox"
+                            checked={selectedBookIds.includes(borrowing.book_id)}
+                            onChange={() => toggleSelection(borrowing.book_id)}
+                        />
+                        )}
                 </div>
             ))}
             </div>

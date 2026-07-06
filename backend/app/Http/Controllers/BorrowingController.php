@@ -61,6 +61,8 @@ class BorrowingController extends Controller
         ], 201);
     }
 
+
+
     //return flow
     public function returnBook(Request $request, Book $book)
     {
@@ -97,5 +99,34 @@ class BorrowingController extends Controller
         return response()->json([
             'message' => 'Book returned successfully.',
         ]);
+    }
+
+
+    public function myBorrowings(Request $request)
+    {
+        $user = $request->user();
+    
+        if ($user->role !== 'student') {
+            return response()->json([
+                'message' => 'Only students can view borrowed books.',
+            ], 403);
+        }
+    
+        $borrowings = Borrowing::with('book')
+            ->where('user_id', $user->id)
+            ->whereNull('returned_at')
+            ->latest('borrowed_at')
+            ->get()
+            ->map(function ($borrowing) {
+                if ($borrowing->book) {
+                    $borrowing->book->cover_image_url = $borrowing->book->cover_image
+                        ? asset('storage/' . $borrowing->book->cover_image)
+                        : null;
+                }
+    
+                return $borrowing;
+            });
+    
+        return response()->json($borrowings);
     }
 }

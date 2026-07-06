@@ -1,4 +1,5 @@
 import { Link, Route, Routes } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
 import AddBook from "./pages/AddBook";
 import BookDetail from "./pages/BookDetail";
 import Books from "./pages/Books";
@@ -11,55 +12,49 @@ function Home() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   return (
-    <div>
-      <div className="navbar">
-        <strong>Library System</strong>
+    <main className="page">
+      <div className="status-box">
+        <h1>Library Management System</h1>
 
-        <nav>
-          <Link to="/home">Home</Link>
-          <Link to="/books">Books</Link>
-          <Link to="/my-books">My Books</Link>
+        {user ? (
+          <p>
+            Logged in as {user.name} ({user.role})
+          </p>
+        ) : (
+          <p>You are browsing as guest.</p>
+        )}
 
-          {!user && (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
-            </>
-          )}
-        </nav>
+        {!user && (
+          <div className="auth-links">
+            <Link to="/login">Login</Link>
+            <Link to="/register">Register</Link>
+          </div>
+        )}
       </div>
-
-      <main className="page">
-        <div className="status-box">
-          <h1>Library Management System</h1>
-
-          {user ? (
-            <p>
-              Logged in as {user.name} ({user.role})
-            </p>
-          ) : (
-            <p>You are browsing as guest.</p>
-          )}
-        </div>
-      </main>
-    </div>
+    </main>
   );
 }
 
 function App() {
+  const user = JSON.parse(localStorage.getItem("user"));
+
   return (
-    <div className="app-container">
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/books" element={<Books />} />
-        <Route path="/books/:id" element={<BookDetail />} />
-        <Route path="/books/:id/edit" element={<EditBook />} />
-        <Route path="/books/add" element={<AddBook />} />
-        <Route path="/my-books" element={<MyBooks />} />
-      </Routes>
+    <div className="app-layout">
+      {user && <Sidebar />}
+
+      <div className="app-content">
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/books" element={<Books />} />
+          <Route path="/books/add" element={<AddBook />} />
+          <Route path="/books/:id" element={<BookDetail />} />
+          <Route path="/books/:id/edit" element={<EditBook />} />
+          <Route path="/my-books" element={<MyBooks />} />
+        </Routes>
+      </div>
     </div>
   );
 }
