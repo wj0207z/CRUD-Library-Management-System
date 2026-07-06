@@ -4,6 +4,7 @@ import BookDetail from "./pages/BookDetail";
 import Books from "./pages/Books";
 import EditBook from "./pages/EditBook";
 import Login from "./pages/Login";
+import MyBooks from "./pages/MyBooks";
 import Register from "./pages/Register";
 
 function Home() {
@@ -17,6 +18,7 @@ function Home() {
         <nav>
           <Link to="/home">Home</Link>
           <Link to="/books">Books</Link>
+          <Link to="/my-books">My Books</Link>
 
           {!user && (
             <>
@@ -56,6 +58,7 @@ function App() {
         <Route path="/books/:id" element={<BookDetail />} />
         <Route path="/books/:id/edit" element={<EditBook />} />
         <Route path="/books/add" element={<AddBook />} />
+        <Route path="/my-books" element={<MyBooks />} />
       </Routes>
     </div>
   );

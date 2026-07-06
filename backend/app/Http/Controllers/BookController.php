@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Borrowing;
 
 class BookController extends Controller
 {
@@ -18,6 +19,8 @@ class BookController extends Controller
         return response()->json($books);
     }
 
+    
+    
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -28,20 +31,41 @@ class BookController extends Controller
             'description' => 'nullable|string',
             'total_copies' => 'required|integer|min:1',
             'available_copies' => 'required|integer|min:0',
+            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
+        if ($request->hasFile('cover_image')) {
+            $validated['cover_image'] = $request
+                ->file('cover_image')
+                ->store('book-covers', 'public');
+        }
 
         $book = Book::create($validated);
 
         //201 is a HTTP status code means created
         //200 means ok but 201 means like success
-        return response()->json($book, 201);
-    }
+        return response()->json($this->withCoverUrl($book), 201);    }
 
-    public function show (Book $book)
+    
+    
+    public function show(Request $request, Book $book)
     {
-        return response()->json($this->withCoverUrl($book));
+        $book = $this->withCoverUrl($book);
+        
+        $book->is_borrowed_by_current_user = false;
+        
+        if ($request->user()) {
+            $book->is_borrowed_by_current_user = Borrowing::where('user_id', $request->user()->id)
+                ->where('book_id', $book->id)
+                ->whereNull('returned_at')
+                ->exists();
+        }
+        
+        return response()->json($book);
     }
 
+    
+    
     public function update (Request $request, Book $book)
     {
 
@@ -73,6 +97,8 @@ class BookController extends Controller
         return response()->json($this->withCoverUrl($book));
     }
 
+    
+    
     public function destroy(Book $book)
     {
         $book->delete();
@@ -82,6 +108,8 @@ class BookController extends Controller
         ]);
     }
 
+    
+    
     private function withCoverUrl(Book $book)
     {
         $book->cover_image_url = $book->cover_image
